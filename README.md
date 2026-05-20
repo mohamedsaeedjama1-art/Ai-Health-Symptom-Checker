@@ -27,17 +27,17 @@
 
 ## 👥 Project Team
 
-| # | Name | Role |
-|---|------|------|
-| 1 | **Mohammad Sa'ed Jama** |
-| 2 | **Abdirahim Garaad Mohammad** | 
-| 3 | **Abdilahi Ali Jamac** | 
-| 4 | **Abdirahman Abdirisack Osman** |
-| 5 | **Sakariye Sidik Elmi** | 
-| 6 | **Liibaan Muhumed Jaamac** | 
-| 7 | **Abdiqani Mohammad Ali** | 
-| 8 | **Sakariye Mohammad Cawale** | 
-| 9 | **Abdishakur Osman Farah** | 
+| # | Name 
+|---|------
+| 1 | **Mohammad Sa'ed Jama** 
+| 2 | **Abdirahim Garaad Mohammad**  
+| 3 | **Abdilahi Ali Jamac** 
+| 4 | **Abdirahman Abdirisack Osman** 
+| 5 | **Sakariye Sidik Elmi** 
+| 6 | **Liibaan Muhumed Jaamac**  
+| 7 | **Abdiqani Mohammad Ali** 
+| 8 | **Sakariye Mohammad Cawale**  
+| 9 | **Abdishakur Osman Farah** 
 
 ---
 
@@ -85,31 +85,6 @@
 
 ---
 
-
-## 📁 Project Structure
-
-
-Ai-Health-Symptom-Checker/
-│
-├── 📄 app.py # Main Flask application (backend)
-├── 📄 requirements.txt # Python packages list
-├── 📄 README.md # Project documentation (this file)
-├── 📄 .gitignore # Git ignore rules
-│
-├── 📁 templates/ # Frontend folder
-│ └── 📄 index.html # HTML, CSS, JavaScript (user interface)
-│
-├── 📁 venv/ # Virtual environment (created by user)
-│ ├── 📁 Scripts/ # Activation scripts (Windows)
-│ ├── 📁 Lib/ # Installed packages
-│ └── 📄 pyvenv.cfg # Venv configuration
-│
-└── 📁 flask_session/ # Session files (auto-generated)
-└── 📄 [session_hash_files] # Temporary user session data
-
-
-
----
 
 ## How To Run 
 
