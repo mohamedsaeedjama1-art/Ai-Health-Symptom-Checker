@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Caawiye Pharmacy - AI Health Checker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    /* ─── RESET & BASE ─────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0f1e;
+      --surface:   #111827;
+      --card:      #161f35;
+      --border:    #1e2d4a;
+      --accent:    #00e5a0;
+      --accent2:   #0099ff;
+      --danger:    #ff4d6d;
+      --warn:      #ffbe0b;
+      --text:      #e8edf5;
+      --muted:     #6b7fa3;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --radius:    16px;
+      --radius-sm: 10px;
+      --sidebar-width: 320px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── SIDEBAR STYLES ───────────────────────────── */
+    .sidebar {
+      position: fixed;
+      left: -320px;
+      top: 0;
+      width: var(--sidebar-width);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      z-index: 1000;
+      transition: left 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar.open { left: 0; }
+
+    .sidebar-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sidebar-header h3 {
+      font-family: var(--font-head);
+      font-size: 18px;
+      color: var(--accent);
+    }
+
+    .close-sidebar {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .history-list {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .history-item:hover {
+      border-color: var(--accent);
+      transform: translateX(4px);
+    }
+
+    .history-date {
+      font-size: 11px;
+      color: var(--accent2);
+      margin-bottom: 6px;
+    }
+
+    .history-symptoms {
+      font-size: 13px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .clear-history {
+      background: rgba(255,77,109,0.1);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 12px;
+      margin: 16px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    /* ─── OVERLAY ──────────────────────────────────── */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      display: none;
+    }
+
+    .overlay.show { display: block; }
+
+    /* ─── TOP BAR WITH BUTTONS ─────────────────────── */
+    .top-bar {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      display: flex;
+      gap: 12px;
+    }
+
+    .icon-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 10px 18px;
+      color: var(--text);
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .menu-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 10px 18px;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .user-info {
+      position: fixed;
+      top: 20px;
+      right: 120px;
+      background: var(--card);
+      border: 1px solid var(--accent);
+      border-radius: 50px;
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--accent);
+    }
+
+    /* ─── MODAL STYLES ─────────────────────────────── */
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      z-index: 1001;
+      width: 90%;
+      max-width: 400px;
+      display: none;
+    }
+
+    .modal.show { display: block; }
+
+    .modal h2 {
+      margin-bottom: 20px;
+      color: var(--accent);
+    }
+
+    .modal input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    .modal button {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      color: #0a0f1e;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ─── MAIN CONTENT ─────────────────────────────── */
+    .main-content {
+      transition: margin-left 0.3s ease;
+    }
+
+    .main-content.shifted {
+      margin-left: var(--sidebar-width);
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 80px 20px 80px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 15% 10%, rgba(0,229,160,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 85% 80%, rgba(0,153,255,0.07) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+      animation: fadeDown .6s ease both;
+    }
+
+    .logo-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,229,160,0.1);
+      border: 1px solid rgba(0,229,160,0.25);
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-family: var(--font-head);
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+      margin-bottom: 14px;
+    }
+
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 15px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .disclaimer {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: rgba(255,190,11,0.08);
+      border: 1px solid rgba(255,190,11,0.2);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      margin-bottom: 32px;
+      font-size: 13px;
+      color: #c9a84c;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-family: var(--font-head);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title::before {
+      content: '';
+      display: block;
+      width: 18px; height: 2px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .tag-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 7px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+
+    .tag:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .tag.active {
+      background: rgba(0,229,160,0.1);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .input-wrap { position: relative; }
+
+    textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 16px;
+      resize: vertical;
+      min-height: 120px;
+      outline: none;
+    }
+
+    textarea:focus { border-color: var(--accent); }
+
+    .char-count {
+      position: absolute;
+      bottom: 10px; right: 14px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+
+    @media(max-width: 500px) { .info-grid { grid-template-columns: 1fr; } }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .field input, .field select {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+    }
+
+    .slider-wrap { margin-top: 8px; }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .slider-val { color: var(--accent2); font-weight: 600; }
+
+    input[type=range] {
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px; height: 18px;
+      background: var(--accent2);
+      border-radius: 50%;
+      border: 3px solid var(--card);
+      box-shadow: 0 0 0 2px var(--accent2);
+      cursor: pointer;
+    }
+
+    .severity-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .sev-btn {
+      flex: 1;
+      min-width: 90px;
+      padding: 10px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--muted);
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .sev-btn:hover { border-color: var(--text); color: var(--text); }
+    .sev-btn.sel-mild  { border-color: var(--accent);  color: var(--accent);  background: rgba(0,229,160,0.08); }
+    .sev-btn.sel-mod   { border-color: var(--warn);    color: var(--warn);    background: rgba(255,190,11,0.08); }
+    .sev-btn.sel-sev   { border-color: var(--danger);  color: var(--danger);  background: rgba(255,77,109,0.08); }
+
+    .btn-analyze {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #0a0f1e;
+      font-family: var(--font-head);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .btn-analyze:hover { opacity: .9; transform: translateY(-1px); }
+
+    .loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 40px 0;
+      text-align: center;
+    }
+
+    .loading.show { display: flex; }
+
+    .pulse-ring {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-top-color: var(--accent);
+      border-right-color: var(--accent2);
+      animation: spin 1s linear infinite;
+    }
+
+    .result-card {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+
+    .result-card.show { display: block; }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .result-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: rgba(0,229,160,0.1);
+      border: 1px solid rgba(0,229,160,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .result-body {
+      font-size: 14.5px;
+      line-height: 1.75;
+      color: #c8d4e8;
+      white-space: pre-wrap;
+    }
+
+    .result-footer {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .error-box {
+      display: none;
+      background: rgba(255,77,109,0.08);
+      border: 1px solid rgba(255,77,109,0.25);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      color: #ff8fa3;
+    }
+
+    .error-box.show { display: block; }
+
+    @keyframes fadeDown {
+      from { opacity:0; transform: translateY(-20px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(20px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar for History -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h3>📜 Chat History</h3>
+    <button class="close-sidebar" onclick="closeSidebar()">✕</button>
+  </div>
+  <div class="history-list" id="historyList">
+    <div style="text-align: center; color: var(--muted); padding: 20px;">
+      No history yet. Sign in to save your chat history.
+    </div>
+  </div>
+  <button class="clear-history" onclick="clearHistory()">🗑️ Clear All History</button>
+</div>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- Top Bar Buttons -->
+<div class="top-bar">
+  <div class="user-info" id="userInfo" style="display: none;"></div>
+  <button class="icon-btn" id="authBtn" onclick="showAuthModal()">👤 Sign In</button>
+</div>
+
+<button class="menu-btn" onclick="toggleSidebar()">☰</button>
+
+<!-- Auth Modal - FULLY FUNCTIONAL with correct toggle -->
+<div class="modal" id="authModal">
+  <h2 id="modalTitle">Sign In</h2>
+  <input type="text" id="authUsername" placeholder="Username" />
+  <input type="password" id="authPassword" placeholder="Password" />
+  <button id="authActionBtn" onclick="handleAuth()">Sign In</button>
+  <p style="margin-top: 16px; text-align: center;">
+    <span id="toggleAuthText">Don't have an account?</span>
+    <button onclick="toggleAuthMode()" style="background: none; color: var(--accent2); width: auto; padding: 0;">Sign Up</button>
+  </p>
+  <button onclick="closeAuthModal()" style="background: transparent; border: 1px solid var(--border); margin-top: 8px;">Cancel</button>
+</div>
+
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+<div class="wrapper">
+
+  <header>
+    <div class="logo-pill"><span>🩺</span> AI-Powered · Educational Only</div>
+    <h1>Caawiye  Health Care<br><em>AI Checker</em></h1>
+    <p class="subtitle">Describe your symptoms and get AI-powered health insights. Always consult a real doctor for medical advice.</p>
+  </header>
+
+  <div class="disclaimer">
+    <span class="icon">⚠️</span>
+    <span>This tool is for <strong>educational purposes only</strong> and does not constitute medical diagnosis or professional advice.</span>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Quick Symptoms (tap to add)</div>
+    <div class="tag-grid" id="tagGrid">
+      <div class="tag" onclick="toggleTag(this, 'Headache')"><span class="tag-icon">🤕</span> Headache</div>
+      <div class="tag" onclick="toggleTag(this, 'Fever')"><span class="tag-icon">🌡️</span> Fever</div>
+      <div class="tag" onclick="toggleTag(this, 'Cough')"><span class="tag-icon">😮‍💨</span> Cough</div>
+      <div class="tag" onclick="toggleTag(this, 'Fatigue')"><span class="tag-icon">😴</span> Fatigue</div>
+      <div class="tag" onclick="toggleTag(this, 'Nausea')"><span class="tag-icon">🤢</span> Nausea</div>
+      <div class="tag" onclick="toggleTag(this, 'Chest Pain')"><span class="tag-icon">💔</span> Chest Pain</div>
+      <div class="tag" onclick="toggleTag(this, 'Shortness of Breath')"><span class="tag-icon">🫁</span> Shortness of Breath</div>
+      <div class="tag" onclick="toggleTag(this, 'Sore Throat')"><span class="tag-icon">🦠</span> Sore Throat</div>
+      <div class="tag" onclick="toggleTag(this, 'Dizziness')"><span class="tag-icon">💫</span> Dizziness</div>
+      <div class="tag" onclick="toggleTag(this, 'Back Pain')"><span class="tag-icon">🦴</span> Back Pain</div>
+    </div>
+
+    <div class="card-title" style="margin-top:4px">Describe your symptoms in detail</div>
+    <div class="input-wrap">
+      <textarea id="symptomsInput" placeholder="e.g. I have had a throbbing headache for 2 days, mild fever around 38°C, and feel very tired..." maxlength="800" oninput="updateCount()"></textarea>
+      <span class="char-count"><span id="charCount">0</span>/800</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Patient Info (optional)</div>
+    <div class="info-grid">
+      <div class="field">
+        <label>Age</label>
+        <input type="number" id="ageInput" placeholder="e.g. 28" min="1" max="120"/>
+      </div>
+      <div class="field">
+        <label>Biological Sex</label>
+        <select id="sexInput">
+          <option value="">Prefer not to say</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
+    </div>
+    <div class="slider-wrap">
+      <div class="slider-label">
+        <span>Symptom Duration</span>
+        <span class="slider-val" id="durLabel">1 day</span>
+      </div>
+      <input type="range" id="durSlider" min="1" max="30" value="1" oninput="updateDuration()"/>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Overall Severity</div>
+    <div class="severity-row">
+      <button class="sev-btn" onclick="setSeverity('Mild', this)">😊 Mild</button>
+      <button class="sev-btn" onclick="setSeverity('Moderate', this)">😟 Moderate</button>
+      <button class="sev-btn" onclick="setSeverity('Severe', this)">😰 Severe</button>
+    </div>
+  </div>
+
+  <button class="btn-analyze" id="analyzeBtn" onclick="analyzeSymptoms()">
+    <span>🔍</span> Analyze Symptoms
+  </button>
+
+  <div class="loading" id="loading">
+    <div class="pulse-ring"></div>
+    <p>AI is analyzing your symptoms…</p>
+  </div>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <div class="result-icon">🧠</div>
+      <div>
+        <h2>AI Health Insights</h2>
+        <p>Powered by Ollama · Educational only</p>
+      </div>
+    </div>
+    <div class="result-body" id="resultBody"></div>
+    <div class="result-footer">⚕️ Always consult a licensed healthcare professional for proper diagnosis and treatment.</div>
+  </div>
+
+</div>
+</div>
+
+<script>
+  // ─── STATE ─────────────────────────────────────────
+  let selectedSeverity = '';
+  let activeTags = [];
+  let currentUser = null;
+  let authMode = 'signin';
+  let userHistories = {};
+
+  // Load users from localStorage
+  function loadUsers() {
+    const users = localStorage.getItem('health_users');
+    if (users) {
+      userHistories = JSON.parse(users);
+    } else {
+      userHistories = {};
+    }
+  }
+
+  function saveUsers() {
+    localStorage.setItem('health_users', JSON.stringify(userHistories));
+  }
+
+  function saveUserHistory(username, history) {
+    if (!userHistories[username]) {
+      userHistories[username] = [];
+    }
+    userHistories[username] = history;
+    saveUsers();
+  }
+
+  function getUserHistory(username) {
+    return userHistories[username] || [];
+  }
+
+  function addToHistory(symptoms, advice) {
+    if (!currentUser) return;
+    
+    const history = getUserHistory(currentUser);
+    const entry = {
+      id: Date.now(),
+      date: new Date().toLocaleString(),
+      symptoms: symptoms.substring(0, 100),
+      fullAdvice: advice
+    };
+    history.unshift(entry);
+    if (history.length > 50) history.pop();
+    saveUserHistory(currentUser, history);
+    loadHistoryToSidebar();
+  }
+
+  function loadHistoryToSidebar() {
+    const historyList = document.getElementById('historyList');
+    if (!currentUser) {
+      historyList.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px;">Sign in to view your chat history.</div>';
+      return;
+    }
+    
+    const history = getUserHistory(currentUser);
+    if (history.length === 0) {
+      historyList.innerHTML = '<div style="text-align: center; color: var(--muted); padding: 20px;">No history yet. Your symptom checks will appear here.</div>';
+      return;
+    }
+    
+    historyList.innerHTML = history.map(entry => `
+      <div class="history-item" onclick="loadHistoryEntry(${entry.id})">
+        <div class="history-date">📅 ${entry.date}</div>
+        <div class="history-symptoms">${escapeHtml(entry.symptoms)}</div>
+      </div>
+    `).join('');
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function loadHistoryEntry(id) {
+    const history = getUserHistory(currentUser);
+    const entry = history.find(h => h.id === id);
+    if (entry && entry.fullAdvice) {
+      document.getElementById('resultBody').textContent = entry.fullAdvice;
+      document.getElementById('resultCard').classList.add('show');
+      closeSidebar();
+    }
+  }
+
+  function clearHistory() {
+    if (!currentUser) return;
+    if (confirm('Are you sure you want to clear all your chat history?')) {
+      saveUserHistory(currentUser, []);
+      loadHistoryToSidebar();
+    }
+  }
+
+  // ─── AUTHENTICATION ────────────────────────────────
+  function showAuthModal() {
+    document.getElementById('authModal').classList.add('show');
+    document.getElementById('overlay').classList.add('show');
+  }
+
+  function closeAuthModal() {
+    document.getElementById('authModal').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+  }
+
+  function toggleAuthMode() {
+    if (authMode === 'signin') {
+      authMode = 'signup';
+      document.getElementById('modalTitle').textContent = 'Sign Up';
+      document.getElementById('authActionBtn').textContent = 'Sign Up';
+      document.getElementById('toggleAuthText').textContent = 'Already have an account?';
+    } else {
+      authMode = 'signin';
+      document.getElementById('modalTitle').textContent = 'Sign In';
+      document.getElementById('authActionBtn').textContent = 'Sign In';
+      document.getElementById('toggleAuthText').textContent = 'Don\'t have an account?';
+    }
+  }
+
+  function handleAuth() {
+    const username = document.getElementById('authUsername').value.trim();
+    const password = document.getElementById('authPassword').value.trim();
+    
+    if (!username || !password) {
+      alert('Please enter username and password');
+      return;
+    }
+    
+    if (authMode === 'signup') {
+      if (userHistories[username]) {
+        alert('Username already exists! Please sign in.');
+        return;
+      }
+      userHistories[username] = [];
+      saveUsers();
+      currentUser = username;
+      alert('Account created successfully!');
+    } else {
+      if (!userHistories[username]) {
+        alert('User not found! Please sign up first.');
+        return;
+      }
+      currentUser = username;
+      alert('Signed in successfully!');
+    }
+    
+    document.getElementById('userInfo').style.display = 'flex';
+    document.getElementById('userInfo').textContent = `👤 ${username}`;
+    document.getElementById('authBtn').textContent = '🚪 Sign Out';
+    document.getElementById('authBtn').onclick = signOut;
+    
+    // Clear form
+    document.getElementById('authUsername').value = '';
+    document.getElementById('authPassword').value = '';
+    
+    closeAuthModal();
+    loadHistoryToSidebar();
+  }
+
+  function signOut() {
+    currentUser = null;
+    document.getElementById('userInfo').style.display = 'none';
+    document.getElementById('authBtn').textContent = '👤 Sign In';
+    document.getElementById('authBtn').onclick = showAuthModal;
+    loadHistoryToSidebar();
+  }
+
+  // ─── SIDEBAR ───────────────────────────────────────
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const mainContent = document.getElementById('mainContent');
+    
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('show');
+    mainContent.classList.toggle('shifted');
+  }
+
+  function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    const mainContent = document.getElementById('mainContent');
+    
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+    mainContent.classList.remove('shifted');
+  }
+
+  // ─── SYMPTOM HANDLERS ──────────────────────────────
+  function toggleTag(el, label) {
+    el.classList.toggle('active');
+    if (el.classList.contains('active')) {
+      activeTags.push(label);
+    } else {
+      activeTags = activeTags.filter(t => t !== label);
+    }
+    syncTagsToTextarea();
+  }
+
+  function syncTagsToTextarea() {
+    const manual = document.getElementById('symptomsInput').value
+      .replace(/\[.*?\]/g, '').trim();
+    const tagPart = activeTags.length ? `[${activeTags.join(', ')}] ` : '';
+    document.getElementById('symptomsInput').value = tagPart + manual;
+    updateCount();
+  }
+
+  function updateCount() {
+    const val = document.getElementById('symptomsInput').value.length;
+    document.getElementById('charCount').textContent = val;
+  }
+
+  function updateDuration() {
+    const v = document.getElementById('durSlider').value;
+    document.getElementById('durLabel').textContent = v == 1 ? '1 day' : `${v} days`;
+  }
+
+  function setSeverity(level, btn) {
+    document.querySelectorAll('.sev-btn').forEach(b => b.className = 'sev-btn');
+    selectedSeverity = level;
+    const cls = {Mild:'sel-mild', Moderate:'sel-mod', Severe:'sel-sev'}[level];
+    btn.classList.add(cls);
+  }
+
+  async function analyzeSymptoms() {
+    const symptoms = document.getElementById('symptomsInput').value.trim();
+    if (!symptoms) {
+      showError('Please describe your symptoms or select at least one quick symptom tag.');
+      return;
+    }
+
+    const age = document.getElementById('ageInput').value;
+    const sex = document.getElementById('sexInput').value;
+    const duration = document.getElementById('durSlider').value;
+    const severity = selectedSeverity || 'Not specified';
+
+    hideAll();
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('analyzeBtn').disabled = true;
+
+    try {
+      const res = await fetch('/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symptoms, age, sex, duration, severity })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        showError(data.error || 'Something went wrong. Please try again.');
+        return;
+      }
+
+      document.getElementById('resultBody').textContent = data.result;
+      document.getElementById('resultCard').classList.add('show');
+      
+      if (currentUser) {
+        addToHistory(symptoms, data.result);
+      }
+
+    } catch (err) {
+      showError('Could not connect to the server. Make sure Flask is running.');
+    } finally {
+      document.getElementById('loading').classList.remove('show');
+      document.getElementById('analyzeBtn').disabled = false;
+    }
+  }
+
+  function showError(msg) {
+    hideAll();
+    const box = document.getElementById('errorBox');
+    box.textContent = '⚠️ ' + msg;
+    box.classList.add('show');
+  }
+
+  function hideAll() {
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('resultCard').classList.remove('show');
+    document.getElementById('errorBox').classList.remove('show');
+  }
+
+  // Initialize
+  loadUsers();
+</script>
+</body>
+</html>
